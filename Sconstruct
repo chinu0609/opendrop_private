@@ -1,0 +1,70 @@
+import os
+from SCons.Script import Environment, AddOption, GetOption, Dir, File, Alias, SConscript
+
+# Explicitly point to Python 3.11
+PYTHON_311 = '/usr/bin/python3.11'  # Change if your python3.11 is elsewhere
+
+env = Environment(
+    NAME='opendrop',
+    ENV={'PATH': os.environ['PATH']},
+    PYTHON=PYTHON_311,
+    PYTHONVERSION='3.11',
+    PYTHONPLATFORM='manylinux1_x86_64',
+    PACKAGE_METADATA={
+        'Requires-Python': '>=3.6',
+        'Provides-Extra': 'genicam',
+        'Requires-Dist': File('requirements.txt').get_text_contents().splitlines(),
+        'Home-page': 'https://github.com/jdber1/opendrop',
+        'Classifier': [
+            'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        ],
+    },
+    BUILDDIR='./build',
+)
+
+# Manually set MPICH and Boost include dirs (update paths as needed)
+mpich_dir = os.getenv('MPICH_DIR', '/usr/include/mpich-x86_64/')
+boost_include_dir = os.getenv('BOOST_INCLUDE_DIR', '/usr/include/boost')
+
+env.Append(CPPPATH=[boost_include_dir, mpich_dir])
+
+# Build directory option
+AddOption(
+    '--build-dir',
+    dest='build_dir',
+    default=env.Dir('build'),
+    metavar='DIR',
+    help='Set DIR as the build directory.',
+)
+
+env['BUILDDIR'] = GetOption('build_dir')
+
+# Compiler and include settings
+env.Append(
+    CPPPATH=[env.Dir('include')],
+    CCFLAGS=['-O3', '-std=c++14'],
+)
+
+# Use tools
+env.Tool('gitversion')
+env.Tool('python')
+env.Tool('pydist')
+
+# SConscript for main package
+package_files = SConscript('opendrop/SConscript', exports='env')
+
+# Build the wheel using the Python 3.11 tag
+wheel = env.WheelPackage(
+    '$BUILDDIR',
+    package_files,
+    packages={'opendrop': './opendrop'},
+    python_tag='cp311',
+    abi_tag='abi3',
+    platform_tag=env['PYTHONPLATFORM'],
+)
+Alias('bdist_wheel', wheel)
+
+# SConscript for C tests
+c_tests = SConscript('tests/c/SConscript', exports='env')
+Alias('tests', c_tests)
+
