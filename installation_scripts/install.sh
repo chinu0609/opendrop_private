@@ -37,7 +37,7 @@ sudo apt update || {
 
 # Install Python 3.11 and development headers
 echo "Installing Python 3.11 and development headers..."
-sudo apt install -y python3.11-all libpython3.11-dev || {
+sudo apt install -y python3.11-dev python3.11-distutils libpython3.11-dev || {
     echo "ERROR: Failed to install Python 3.11"
     exit 1
 }
