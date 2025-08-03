@@ -37,11 +37,13 @@ sudo apt update || {
 
 # Install Python 3.11 and development headers
 echo "Installing Python 3.11 and development headers..."
-sudo apt install -y python3.11-dev python3.11-distutils libpython3.11-dev || {
+sudo apt install -y python3.11-full python3.11-distutils libpython3.11-dev || {
     echo "ERROR: Failed to install Python 3.11"
     exit 1
 }
-
+sudo apt install -y libboost-dev libboost-test-dev
+wget https://bootstrap.pypa.io/get-pip.py
+python3.11 get-pip.py
 # Verify Python 3.11 installation
 python3.11 --version || {
     echo "ERROR: Python 3.11 installation failed"
@@ -175,7 +177,7 @@ else
     }
     cd opendrop_private
 fi
-
+python3.11 -m pip install -r requirements.txt
 echo "Building OpenDrop with scons..."
 scons || {
     echo "ERROR: OpenDrop build failed"
