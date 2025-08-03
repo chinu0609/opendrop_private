@@ -177,7 +177,7 @@ else
     }
     cd opendrop_private
 fi
-python3.11 -m pip install -r requirements.txt
+python3.11 -m pip install -r requirements.txt --ignore-installed
 echo "Building OpenDrop with scons..."
 scons || {
     echo "ERROR: OpenDrop build failed"
